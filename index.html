@@ -325,7 +325,17 @@
 
             <p><em>Acá podemos observar cómo las Universidades con mayor acreditación tienden a tener menores niveles de deserción </em>.
 
-
+ <figure>
+    <div id="chart-wrap-2">
+      <canvas id="retChart"></canvas>
+    </div>
+    <figcaption>
+      Tasa de retención estimada de primer año según años de acreditación institucional CNA.
+      Datos cohorte 2022, obtenidos del
+      <a href="https://www.mifuturo.cl/servicio-de-informacion-de-educacion-superior/" target="_blank">SIES</a>
+      y de King-Domínguez et al. (Scielo).
+    </figcaption>
+  </figure>
 
                 
 
@@ -480,4 +490,143 @@
             });
         </script>
     </body>
+</html>
+
+<!-- ── Gráfico 2: Retención por años de acreditación ── -->
+<script>
+(function () {
+  const universidades = [
+    { nombre: 'UNIACC',               acred: 3, retencion: 69.5 },
+    { nombre: 'U. Gabriela Mistral',  acred: 4, retencion: 71.8 },
+    { nombre: 'U. Viña del Mar',      acred: 4, retencion: 71.8 },
+    { nombre: 'U. Tecnológica Met.',  acred: 4, retencion: 71.8 },
+    { nombre: 'U. Finis Terrae',      acred: 5, retencion: 75.2 },
+    { nombre: 'U. Mayor',             acred: 5, retencion: 75.2 },
+    { nombre: 'U. de La Serena',      acred: 5, retencion: 75.2 },
+    { nombre: 'U. Playa Ancha',       acred: 5, retencion: 75.2 },
+    { nombre: 'U. Antofagasta',       acred: 5, retencion: 75.2 },
+    { nombre: 'U. del Bío-Bío',       acred: 5, retencion: 75.2 },
+    { nombre: 'UC Temuco',            acred: 5, retencion: 75.2 },
+    { nombre: 'U. Andrés Bello',      acred: 6, retencion: 78.6 },
+    { nombre: 'U. del Desarrollo',    acred: 6, retencion: 78.6 },
+    { nombre: 'U. Diego Portales',    acred: 6, retencion: 78.6 },
+    { nombre: 'U. Adolfo Ibáñez',     acred: 6, retencion: 78.6 },
+    { nombre: 'U. Austral',           acred: 6, retencion: 78.6 },
+    { nombre: 'U. Tarapacá',          acred: 6, retencion: 78.6 },
+    { nombre: 'U. de Talca',          acred: 6, retencion: 78.6 },
+    { nombre: 'U. de Valparaíso',     acred: 6, retencion: 78.6 },
+    { nombre: 'UTFSM',                acred: 6, retencion: 78.6 },
+    { nombre: 'PUC Chile',            acred: 7, retencion: 84.0 },
+    { nombre: 'PUCV',                 acred: 7, retencion: 84.0 },
+    { nombre: 'U. de Chile',          acred: 7, retencion: 84.0 },
+    { nombre: 'USACH',                acred: 7, retencion: 84.0 },
+  ];
+
+  const ordered = [...universidades].sort(
+    (a, b) => a.acred - b.acred || a.nombre.localeCompare(b.nombre)
+  );
+
+  function colorPorAcred(acred) {
+    if (acred <= 3) return '#B5D4F4';
+    if (acred === 4) return '#85B7EB';
+    if (acred === 5) return '#378ADD';
+    if (acred === 6) return '#185FA5';
+    return '#042C53';
+  }
+
+  const labels           = ordered.map(u => u.nombre);
+  const dataRetencion    = ordered.map(u => u.retencion);
+  const backgroundColors = ordered.map(u => colorPorAcred(u.acred));
+
+  new Chart(document.getElementById('retChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Retención estimada (%)',
+          data: dataRetencion,
+          backgroundColor: backgroundColors,
+          borderRadius: 5,
+          barPercentage: 0.7,
+          categoryPercentage: 0.8,
+          order: 2,
+        },
+        {
+          label: 'Tendencia',
+          data: dataRetencion,
+          type: 'line',
+          borderColor: '#E24B4A',
+          borderWidth: 2,
+          borderDash: [5, 4],
+          pointRadius: 3,
+          pointBackgroundColor: '#E24B4A',
+          tension: 0.3,
+          fill: false,
+          order: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#fff",
+          borderColor: "#ddd",
+          borderWidth: 1,
+          titleColor: "#111",
+          bodyColor: "#555",
+          titleFont: { family: "'Georama', sans-serif", size: 12, weight: "600" },
+          bodyFont:  { family: "'Georama', sans-serif", size: 11 },
+          padding: 10,
+          callbacks: {
+            title: (items) => items[0].label,
+            label: (item) => {
+              const u = ordered[item.dataIndex];
+              return [
+                ' Retención estimada: ' + item.parsed.y.toFixed(1) + '%',
+                ' Acreditación CNA: ' + u.acred + ' año' + (u.acred !== 1 ? 's' : ''),
+              ];
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            font: { family: "'Georama', sans-serif", size: 11 },
+            color: "#999",
+            maxRotation: 55,
+            minRotation: 45,
+            autoSkip: false,
+          },
+        },
+        y: {
+          min: 60,
+          max: 92,
+          grid: { color: 'rgba(0,0,0,0.07)' },
+          border: { color: "#bbb", dash: [4, 4] },
+          ticks: {
+            font: { family: "'Georama', sans-serif", size: 11 },
+            color: "#999",
+            callback: (v) => v + '%',
+            stepSize: 5,
+          },
+          title: {
+            display: true,
+            text: 'Tasa de retención 1er año (%)',
+            font: { family: "'Georama', sans-serif", size: 11 },
+            color: "#999",
+          },
+        },
+      },
+    },
+  });
+})();
+</script>
+
+</body>
 </html>
